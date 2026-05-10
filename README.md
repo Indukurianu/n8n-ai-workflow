@@ -21,3 +21,6 @@ The workflow generates advertisement scripts and images automatically using AI i
 
 ## Files
 - ai-ad-generator-workflow.json → Main n8n workflow
+
+## Workflow Screenshot
+[Workflow](n8n%20workflow.png)
