@@ -1,0 +1,303 @@
+{
+  "name": "ai-ad-generator-workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "838a82a9-2590-4952-815d-18e213458afa",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "80c081b5-1b42-4e05-ae0b-6f3616a1f596",
+              "name": "product",
+              "value": "VORTEX Smart Watch",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        0
+      ],
+      "id": "eab4b846-30bd-4c39-9753-135fbfcb504f",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"llama-3.1-8b-instant\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are a professional cinematic advertisement writer.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Create a professional 30-second advertisement script for VORTEX Smart Watch. Generate 5 cinematic scenes. For each scene provide scene title, detailed scene description, camera angle, lighting style, and realistic image generation prompt.\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        784,
+        0
+      ],
+      "id": "596ede13-36c8-44fc-8263-b598a626e4dc",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const scenes = [\n  \"woman jogging wearing smartwatch\",\n  \"luxury smartwatch on wrist close-up\",\n  \"product cinematic rotating shot\"\n];\n\nreturn scenes.map(scene => {\n  return {\n    json: {\n      image_prompt: scene\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        0
+      ],
+      "id": "c41dc2cc-bd14-467a-80dc-1189a10b7e1a",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=C:\\Users\\anuin\\OneDrive\\Desktop\\n8n-images",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        1392,
+        0
+      ],
+      "id": "1652f5a3-37a9-44f0-b789-689080931540",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"llama-3.1-8b-instant\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are a cinematic advertisement writer.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Create a professional 30-second ad script for {{$json.product}}. Generate 5 cinematic scenes. For each scene provide: scene title, scene description, camera shot, lighting style, and realistic AI image prompt.\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        432,
+        0
+      ],
+      "id": "fa5de506-c33b-4e67-a2eb-e36b4daa60cb",
+      "name": "generate Script"
+    },
+    {
+      "parameters": {
+        "jsCode": "const output = $json.choices[0].message.content;\n\nreturn [\n  {\n    json: {\n      ad_script: output\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        608,
+        0
+      ],
+      "id": "f5c4b25d-8e25-433a-9a6d-7a3b4f5d6e9e",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://image.pollinations.ai/prompt/{{ $json.image_prompt}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1168,
+        0
+      ],
+      "id": "74f10f6c-b0a8-4dfc-876b-029422282665",
+      "name": "Generate image"
+    },
+    {
+      "parameters": {
+        "name": "=Scene{{ $itemIndex }}.png",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1Aat-3cZvoN9uyVpxMfwQoF3lw4bhidLp",
+          "mode": "list",
+          "cachedResultName": "AI-Ads output ",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1Aat-3cZvoN9uyVpxMfwQoF3lw4bhidLp"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1600,
+        0
+      ],
+      "id": "44cc9cec-7650-4c58-8ec0-6970d585b9e5",
+      "name": "Upload file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "QoefB520BN36uxME",
+          "name": "Google Drive account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "generate Script",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Generate image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "generate Script": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate image": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "231c8de9-9d3e-419d-9570-6868f552299b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "02b06cade4ad0e8b4007c53e44b3d07dfef94a1bc019af085a89f41edfa34c62"
+  },
+  "id": "2lOEMRFiv1aWEJ6x",
+  "tags": []
+}
